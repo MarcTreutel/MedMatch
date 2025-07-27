@@ -1,0 +1,15 @@
+{
+  "name": "medmatch-backend",
+  "version": "1.0.0",
+  "description": "MedMatch Backend API",
+  "main": "src/main.ts",
+  "scripts": {
+    "dev": "nodemon src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["medmatch", "medical", "internships"],
+  "author": "MedMatch Team",
+  "license": "ISC"
+}
