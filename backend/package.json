@@ -4,12 +4,37 @@
   "description": "MedMatch Backend API",
   "main": "src/main.ts",
   "scripts": {
-    "dev": "nodemon src/main.ts",
-    "build": "tsc",
+    "dev": "nest start --watch",
+    "build": "nest build",
     "start": "node dist/main.js",
+    "start:dev": "nest start --watch",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["medmatch", "medical", "internships"],
+  "keywords": [
+    "medmatch",
+    "medical",
+    "internships"
+  ],
   "author": "MedMatch Team",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@nestjs/cli": "^11.0.8",
+    "@types/multer": "^2.0.0",
+    "@types/pg": "^8.15.5",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.1.5",
+    "@nestjs/config": "^4.0.2",
+    "@nestjs/core": "^11.1.5",
+    "@nestjs/platform-express": "^11.1.5",
+    "@nestjs/serve-static": "^5.0.3",
+    "@nestjs/typeorm": "^11.0.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "multer": "^2.0.2",
+    "pg": "^8.16.3",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.25"
+  }
 }
