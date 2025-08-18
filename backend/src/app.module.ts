@@ -2,42 +2,62 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersController } from './controllers/users.controller';
+
+// Import ALL your controllers
+import { StudentsController } from './controllers/students.controller';
+import { UsersController } from './controllers/users.controller'; // 🔧 Add this
+import { ApplicationsController } from './controllers/applications.controller'; // 🔧 Add this too
+import { ClinicsController } from './controllers/clinics.controller'; // 🔧 And this
+import { PositionsController } from './controllers/positions.controller'; // 🔧 And this
+import { DocumentsController } from './controllers/documents.controller'; // 🔧 And this
+
+// Import your actual entities
 import { User } from './entities/user.entity';
+import { Application } from './entities/application.entity';
 import { StudentProfile } from './entities/student-profile.entity';
 import { ClinicProfile } from './entities/clinic-profile.entity';
-import { Document } from './entities/document.entity';
 import { InternshipPosition } from './entities/internship-position.entity';
-import { Application } from './entities/application.entity';
-import { StudentsController } from './controllers/students.controller';
-import { ClinicsController } from './controllers/clinics.controller';
-import { PositionsController } from './controllers/positions.controller';
-import { ApplicationsController } from './controllers/applications.controller';
-import { DocumentsController } from './controllers/documents.controller';
+import { Document } from './entities/document.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'postgres',
-      database: 'medmatch_dev',
-      entities: [User, StudentProfile, ClinicProfile, Document, InternshipPosition, Application],
-      synchronize: true, // Enable for development
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 5432,
+      username: process.env.DB_USERNAME || 'postgres',
+      password: String(process.env.DB_PASSWORD || ''),
+      database: process.env.DB_DATABASE || 'medmatch',
+      entities: [User, Application, StudentProfile, ClinicProfile, InternshipPosition, Document],
+      synchronize: true,
+      logging: false,
     }),
-    TypeOrmModule.forFeature([User, StudentProfile, ClinicProfile, Document, InternshipPosition, Application]),
+    
+    TypeOrmModule.forFeature([
+      User, 
+      Application, 
+      StudentProfile, 
+      ClinicProfile, 
+      InternshipPosition, 
+      Document
+    ]),
   ],
   controllers: [
     AppController,
-    UsersController,
     StudentsController,
+    UsersController, // 🔧 Add this
+    ApplicationsController, // 🔧 Add these too
     ClinicsController,
     PositionsController,
-    ApplicationsController,
     DocumentsController,
   ],
   providers: [AppService],
 })
 export class AppModule {}
+
+
+
+
+
+
+

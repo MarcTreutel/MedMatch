@@ -117,7 +117,9 @@ export default function StudentDashboard() {
   };
 
   // Filter out positions that the user has already applied to
-  const appliedPositionIds = applications.map(app => app.position.id);
+  const appliedPositionIds = Array.isArray(applications) 
+  ? applications.map(app => app.position?.id).filter(Boolean)
+  : [];
   const availablePositions = positions.filter(pos => !appliedPositionIds.includes(pos.id));
 
   return (
