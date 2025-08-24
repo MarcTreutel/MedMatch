@@ -25,7 +25,6 @@ export class JwtAuthGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      // Only log when there's an actual request, not on startup
       if (request.url) {
         console.log('JWT Guard - No valid token provided for:', request.url);
       }
@@ -34,13 +33,11 @@ export class JwtAuthGuard implements CanActivate {
 
     try {
       const token = authHeader.substring(7);
-      const decoded = jwt.decode(token, { complete: true }) as any;
-      
-      if (!decoded) {
-        throw new UnauthorizedException('Invalid token format');
-      }
-
-      const auth0Id = decoded.payload.sub;
+    
+      // 🔧 FIX: Actually verify the token signature
+      const decoded = await this.verifyToken(token);
+    
+      const auth0Id = decoded.sub; // 🔧 FIX: Should be decoded.sub, not decoded.payload.sub
       console.log('JWT Guard - Decoded auth0Id:', auth0Id);
 
       const user = await this.userRepository.findOne({
@@ -60,5 +57,37 @@ export class JwtAuthGuard implements CanActivate {
       console.log('JWT Guard Error:', error.message);
       throw new UnauthorizedException('Invalid token');
     }
+  }
+
+  // 🔧 ADD: New method to verify token signature
+  private async verifyToken(token: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // First decode to get the key ID
+      const decoded = jwt.decode(token, { complete: true }) as any;
+      if (!decoded || !decoded.header || !decoded.header.kid) {
+        return reject(new Error('Invalid token format'));
+      }
+
+      // Get the signing key from Auth0
+      this.jwksClientInstance.getSigningKey(decoded.header.kid, (err, key) => {
+        if (err) {
+          return reject(err);
+        }
+
+        const signingKey = key.getPublicKey();
+
+        // Verify the token signature
+        jwt.verify(token, signingKey, {
+          audience: process.env.AUTH0_AUDIENCE, // You'll need to add this env var
+          issuer: 'https://dev-5mnvqv6rgrbb4ml1.us.auth0.com/',
+          algorithms: ['RS256']
+        }, (verifyErr, payload) => {
+          if (verifyErr) {
+            return reject(verifyErr);
+          }
+          resolve(payload);
+        });
+      });
+    });
   }
 }

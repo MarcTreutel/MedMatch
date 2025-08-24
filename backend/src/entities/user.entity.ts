@@ -22,12 +22,12 @@ export class User {
   @Column({ nullable: true })
   name: string;
 
-  @Column({
-    type: 'enum',
+  @Column({ 
+    type: 'enum', 
     enum: UserRole,
-    default: UserRole.STUDENT
+    nullable: true // 🔥 Make sure this is true
   })
-  role: UserRole;
+  role: UserRole | null;
 
   @CreateDateColumn()
   created_at: Date;

@@ -1,0 +1,367 @@
+    Directory: C:\Projects\MedMatch
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/17/2025   8:16 PM                backend
+d-----         8/21/2025   7:49 PM                frontend
+-a----         8/15/2025   9:40 PM            284 .gitignore
+-a----         8/20/2025   9:14 PM          22606 MedMatch Platform - Complete Project Documentation 2025-08-20.docx
+-a----         8/15/2025   9:40 PM            288 README.md
+
+    Directory: C:\Projects\MedMatch\backend
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/17/2025  11:59 PM                dist
+d-----         8/18/2025   7:54 PM                node_modules
+d-----         8/17/2025  11:41 PM                src
+d-----         8/16/2025  11:45 PM                uploads
+-a----         8/19/2025   9:26 PM            175 .env
+-a----         8/15/2025   9:40 PM           1178 fix-null-dates.js
+-a----         8/17/2025   8:16 PM          17820 insert_clinic_data_final.sql
+-a----         8/15/2025   9:40 PM            812 list-db.js
+-a----         8/18/2025   7:54 PM         248919 package-lock.json
+-a----         8/18/2025   7:54 PM           1328 package.json
+-a----         8/15/2025   9:40 PM            665 tsconfig.json
+
+    Directory: C:\Projects\MedMatch\backend\dist
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/20/2025  12:56 PM                auth
+d-----         8/17/2025   6:57 PM                controllers
+d-----         8/17/2025   6:57 PM                entities
+d-----         8/17/2025   6:57 PM                migrations
+-a----         8/18/2025   7:55 PM            283 app.controller.d.ts
+-a----         8/18/2025   7:55 PM           1990 app.controller.js
+-a----         8/18/2025   7:55 PM            603 app.controller.js.map
+-a----         8/20/2025   7:49 PM             35 app.module.d.ts
+-a----         8/20/2025   7:49 PM           3963 app.module.js
+-a----         8/20/2025   7:49 PM           1339 app.module.js.map
+-a----         8/18/2025   7:55 PM             60 app.service.d.ts
+-a----         8/18/2025   7:55 PM            998 app.service.js
+-a----         8/18/2025   7:55 PM            280 app.service.js.map
+-a----         8/20/2025   7:49 PM             11 debug-applications.d.ts
+-a----         8/18/2025   7:55 PM           3210 debug-applications.js
+-a----         8/18/2025   7:55 PM           2704 debug-applications.js.map
+-a----         8/20/2025   7:49 PM             11 main.d.ts
+-a----         8/18/2025   7:55 PM           2076 main.js
+-a----         8/18/2025   7:55 PM            655 main.js.map
+-a----         8/18/2025   7:55 PM             11 run-migration.d.ts
+-a----         8/18/2025   7:55 PM           1681 run-migration.js
+-a----         8/18/2025   7:55 PM            937 run-migration.js.map
+-a----         8/20/2025   7:49 PM             11 seed.d.ts
+-a----         8/18/2025   7:55 PM           2571 seed.js
+-a----         8/18/2025   7:55 PM           1585 seed.js.map
+-a----         8/20/2025   7:49 PM         201180 tsconfig.tsbuildinfo
+
+    Directory: C:\Projects\MedMatch\backend\dist\auth
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/18/2025   7:57 PM            384 jwt-auth.guard.d.ts
+-a----         8/18/2025   7:57 PM           4891 jwt-auth.guard.js
+-a----         8/18/2025   7:57 PM           1874 jwt-auth.guard.js.map
+-a----         8/20/2025  12:56 PM            156 roles.decorator.d.ts
+-a----         8/20/2025  12:56 PM            282 roles.decorator.js
+-a----         8/20/2025  12:56 PM            259 roles.decorator.js.map
+-a----         8/20/2025  12:55 PM            280 roles.guard - Copy.d.ts
+-a----         8/20/2025  12:55 PM           2432 roles.guard - Copy.js
+-a----         8/20/2025  12:55 PM           1393 roles.guard - Copy.js.map
+-a----         8/20/2025  12:55 PM            280 roles.guard.d.ts
+-a----         8/20/2025  12:55 PM           2421 roles.guard.js
+-a----         8/20/2025  12:55 PM           1379 roles.guard.js.map
+-a----         8/20/2025  12:54 PM             85 user.decorator - Copy.d.ts
+-a----         8/20/2025  12:54 PM            360 user.decorator - Copy.js
+-a----         8/20/2025  12:54 PM            339 user.decorator - Copy.js.map
+-a----         8/18/2025   7:55 PM             85 user.decorator.d.ts
+-a----         8/18/2025   7:55 PM            349 user.decorator.js
+-a----         8/18/2025   7:55 PM            325 user.decorator.js.map
+
+    Directory: C:\Projects\MedMatch\backend\dist\controllers
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/20/2025   1:41 PM           2213 applications.controller.d.ts
+-a----         8/20/2025   1:41 PM          14944 applications.controller.js
+-a----         8/20/2025   1:41 PM           8935 applications.controller.js.map
+-a----         8/20/2025   1:34 PM           1141 clinics.controller.d.ts
+-a----         8/20/2025   1:34 PM           7713 clinics.controller.js
+-a----         8/20/2025   1:34 PM           4757 clinics.controller.js.map
+-a----         8/20/2025   7:49 PM           1148 documents.controller.d.ts
+-a----         8/20/2025   7:49 PM          14455 documents.controller.js
+-a----         8/20/2025   7:49 PM           8145 documents.controller.js.map
+-a----         8/20/2025   1:38 PM           1314 positions.controller.d.ts
+-a----         8/20/2025   1:38 PM           9950 positions.controller.js
+-a----         8/20/2025   1:38 PM           5821 positions.controller.js.map
+-a----         8/18/2025   7:55 PM           1957 students.controller.d.ts
+-a----         8/18/2025   7:55 PM          10969 students.controller.js
+-a----         8/18/2025   7:55 PM           6754 students.controller.js.map
+-a----         8/20/2025   1:13 PM           1048 users.controller.d.ts
+-a----         8/20/2025   1:13 PM           9227 users.controller.js
+-a----         8/20/2025   1:13 PM           6081 users.controller.js.map
+
+    Directory: C:\Projects\MedMatch\backend\dist\entities
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/18/2025   7:55 PM            559 application.entity.d.ts
+-a----         8/18/2025   7:55 PM           3478 application.entity.js
+-a----         8/18/2025   7:55 PM           1328 application.entity.js.map
+-a----         8/18/2025   7:55 PM            351 clinic-profile.entity.d.ts
+-a----         8/18/2025   7:55 PM           2736 clinic-profile.entity.js
+-a----         8/18/2025   7:55 PM            969 clinic-profile.entity.js.map
+-a----         8/18/2025   7:55 PM            379 document.entity.d.ts
+-a----         8/18/2025   7:55 PM           2697 document.entity.js
+-a----         8/18/2025   7:55 PM            932 document.entity.js.map
+-a----         8/18/2025   7:55 PM            583 internship-position.entity.d.ts
+-a----         8/18/2025   7:55 PM           3810 internship-position.entity.js
+-a----         8/18/2025   7:55 PM           1380 internship-position.entity.js.map
+-a----         8/18/2025   7:55 PM            413 student-profile.entity.d.ts
+-a----         8/18/2025   7:55 PM           2975 student-profile.entity.js
+-a----         8/18/2025   7:55 PM           1053 student-profile.entity.js.map
+-a----         8/18/2025   7:55 PM            456 user.entity.d.ts
+-a----         8/18/2025   7:55 PM           2884 user.entity.js
+-a----         8/18/2025   7:55 PM           1064 user.entity.js.map
+
+    Directory: C:\Projects\MedMatch\backend\src
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/20/2025  12:56 PM                auth
+d-----         8/17/2025  11:52 PM                controllers
+d-----         8/15/2025   9:40 PM                entities
+d-----         8/15/2025   9:40 PM                migrations
+-a----         8/15/2025   9:40 PM            458 app.controller.ts
+-a----         8/20/2025   1:00 PM           2357 app.module.ts
+-a----         8/15/2025   9:40 PM            167 app.service.ts
+-a----         8/15/2025   9:40 PM           3048 debug-applications.ts
+-a----         8/18/2025   7:10 PM            665 main.ts
+-a----         8/15/2025   9:40 PM           1331 run-migration.ts
+-a----         8/15/2025   9:40 PM           2222 seed.ts
+
+    Directory: C:\Projects\MedMatch\backend\src\auth
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/18/2025   7:57 PM           2143 jwt-auth.guard.ts
+-a----         8/20/2025  12:56 PM            183 roles.decorator.ts
+-a----         8/20/2025  12:55 PM           1478 roles.guard.ts
+-a----         8/17/2025  11:46 PM            318 user.decorator.ts
+
+    Directory: C:\Projects\MedMatch\backend\src\controllers
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/20/2025   1:41 PM          12399 applications.controller.ts
+-a----         8/20/2025   1:34 PM           6358 clinics.controller.ts
+-a----         8/20/2025   7:49 PM           9698 documents.controller.ts
+-a----         8/20/2025   1:38 PM           7808 positions.controller.ts
+-a----         8/18/2025   6:55 PM           8703 students.controller.ts
+-a----         8/15/2025   9:40 PM           2320 students.controller.ts.backup
+-a----         8/20/2025   1:13 PM           7464 users.controller.ts
+
+    Directory: C:\Projects\MedMatch\backend\src\entities
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM           1236 application.entity.ts
+-a----         8/15/2025   9:40 PM            837 clinic-profile.entity.ts
+-a----         8/15/2025   9:40 PM            826 document.entity.ts
+-a----         8/15/2025   9:40 PM           1335 internship-position.entity.ts
+-a----         8/15/2025   9:40 PM            945 student-profile.entity.ts
+-a----         8/15/2025   9:40 PM            984 user.entity.ts
+
+    Directory: C:\Projects\MedMatch\frontend
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/21/2025   9:27 PM                .next
+d-----         8/21/2025  12:55 AM                node_modules
+d-----         8/15/2025   9:40 PM                public
+d-----         8/21/2025   8:08 PM                src
+-a----         8/17/2025   1:35 AM            283 .env.local
+-a----         8/15/2025   9:40 PM            521 .gitignore
+-a----         8/15/2025   9:40 PM            409 eslint.config.mjs
+-a----         8/16/2025  11:44 PM            216 next-env.d.ts
+-a----         8/15/2025   9:40 PM            140 next.config.ts
+-a----         8/21/2025  12:55 AM         225942 package-lock.json
+-a----         8/21/2025  12:55 AM            628 package.json
+-a----         8/15/2025   9:40 PM             86 postcss.config.mjs
+-a----         8/15/2025   9:40 PM           1486 README.md
+-a----         8/15/2025   9:40 PM            629 tsconfig.json
+
+    Directory: C:\Projects\MedMatch\frontend\public
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM            391 file.svg
+-a----         8/15/2025   9:40 PM           1035 globe.svg
+-a----         8/15/2025   9:40 PM           1375 next.svg
+-a----         8/15/2025   9:40 PM            128 vercel.svg
+-a----         8/15/2025   9:40 PM            385 window.svg
+
+    Directory: C:\Projects\MedMatch\frontend\src
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/15/2025   9:40 PM                app
+d-----         8/19/2025  10:06 PM                components
+d-----         8/15/2025   9:40 PM                context
+-a----         8/15/2025   9:40 PM            841 middleware.ts
+
+    Directory: C:\Projects\MedMatch\frontend\src\app
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/15/2025   9:40 PM                api
+d-----         8/15/2025   9:40 PM                clinic
+d-----         8/15/2025   9:40 PM                select-role
+d-----         8/15/2025   9:40 PM                student
+-a----         8/15/2025   9:40 PM          25931 favicon.ico
+-a----         8/15/2025   9:40 PM            514 globals.css
+-a----         8/15/2025   9:40 PM            721 layout.tsx
+-a----         8/21/2025   9:46 PM           4555 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\api
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/20/2025  11:12 PM                auth
+d-----         8/15/2025   9:40 PM                user
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\api\auth
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/20/2025  11:12 PM                signup
+d-----         8/15/2025   9:40 PM                [auth0]
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\api\auth\signup
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/21/2025   1:04 AM            950 route.ts
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\api\user
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/15/2025   9:40 PM                role
+-a----         8/15/2025   9:40 PM            177 route.ts
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\api\user\role
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM            585 route.ts
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\clinic
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/15/2025   9:40 PM                applications
+d-----         8/15/2025   9:40 PM                dashboard
+d-----         8/15/2025   9:40 PM                positions
+d-----         8/15/2025   9:40 PM                profile
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\clinic\applications
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          18062 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\clinic\dashboard
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          18062 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\clinic\positions
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          18062 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\clinic\profile
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          18062 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\select-role
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM           4895 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\student
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d-----         8/15/2025   9:40 PM                applications
+d-----         8/15/2025   9:40 PM                dashboard
+d-----         8/15/2025   9:40 PM                profile
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\student\applications
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          10116 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\student\dashboard
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          10116 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\app\student\profile
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM          10116 page.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\components
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM           4410 ApplicationModal.tsx
+-a----         8/19/2025  10:07 PM           2250 ForbiddenPage.tsx
+-a----         8/21/2025   9:47 PM           7286 Navigation.tsx
+
+    Directory: C:\Projects\MedMatch\frontend\src\context
+
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a----         8/15/2025   9:40 PM           5679 UserContext.tsx

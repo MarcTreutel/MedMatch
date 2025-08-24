@@ -33,18 +33,28 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUser = async () => {
     if (!user?.sub) return;
-    
+  
     try {
       setLoading(true);
       console.log("Context: Fetching user with auth0 ID:", user.sub);
+    
       const response = await fetch(`http://localhost:3001/api/users/${user.sub}`);
       const data = await response.json();
       console.log("Context: User data from API:", data);
-      
+    
       if (data && !data.error) {
         setDbUser(data);
+        console.log("Context: User found with role:", data.role);
+      
+        // 🔥 ADD THIS: Check if user needs to select a role
+        if (!data.role || data.role === null) {
+          console.log("Context: User has no role, redirecting to role selection");
+          router.push('/select-role');
+          return;
+      }
+      
       } else {
-        // If user doesn't exist in our DB yet, create them
+        console.log("Context: User not found, creating new user");
         await createUser();
       }
     } catch (err) {
@@ -55,9 +65,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+
   const createUser = async () => {
     try {
       console.log("Context: Creating new user:", user?.sub);
+    
       const response = await fetch('http://localhost:3001/api/users', {
         method: 'POST',
         headers: {
@@ -66,22 +78,33 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         body: JSON.stringify({
           auth0Id: user?.sub,
           email: user?.email,
-          name: user?.name,
-          role: 'student' // Default role
+          name: user?.name
         }),
       });
-      
+    
       const data = await response.json();
       console.log("Context: Create user response:", data);
-      
+    
       if (data && !data.error) {
         setDbUser(data);
+        console.log("Context: New user created with role:", data.role);
+      
+        // 🔥 ADD THIS: Check if new user needs to select a role
+        if (!data.role || data.role === null) {
+          console.log("Context: New user has no role, redirecting to role selection");
+          router.push('/select-role');
+          return;
+        }
+      
+      } else {
+        setError("Failed to create user");
       }
     } catch (err) {
       console.error("Error creating user:", err);
       setError("Failed to create user");
     }
   };
+
 
   const setUserRole = async (role: string) => {
     if (!user?.sub) return;
@@ -91,6 +114,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       
       // For admin users, we don't update the DB role
       if (dbUser?.role === 'admin') {
+        console.log("Context: Admin user switching to view:", role);
         // Just redirect to the appropriate dashboard
         if (role === 'student') {
           router.push('/student/dashboard');
@@ -100,6 +124,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
+      // For regular users, update their role in the database
       const response = await fetch('http://localhost:3001/api/users', {
         method: 'POST',
         headers: {
@@ -118,6 +143,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       
       if (data && !data.error) {
         setDbUser(data);
+        console.log("Context: User role updated to:", data.role);
         
         // Redirect to the appropriate dashboard
         if (role === 'student') {
@@ -125,6 +151,8 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         } else if (role === 'clinic') {
           router.push('/clinic/dashboard');
         }
+      } else {
+        setError("Failed to set user role");
       }
     } catch (err) {
       console.error("Error setting user role:", err);
@@ -137,15 +165,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       console.log("Context: Enabling admin access");
-      const response = await fetch('http://localhost:3001/api/users/set-role', {
+      // Note: This endpoint might not exist yet, we'll need to create it
+      const response = await fetch('http://localhost:3001/api/users/create-first-admin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          auth0Id: user.sub,
-          role: 'admin',
-          adminKey
+          targetAuth0Id: user.sub,
+          superAdminSecret: adminKey
         }),
       });
       
@@ -172,8 +200,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (user && !authLoading) {
+      console.log("Context: User logged in, fetching user data");
       fetchUser();
     } else if (!authLoading) {
+      console.log("Context: No user logged in");
       setLoading(false);
     }
   }, [user, authLoading]);

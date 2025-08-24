@@ -4,16 +4,30 @@ import Navigation from '@/components/Navigation';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useUserContext } from '@/context/UserContext';
 
 export default function Home() {
   const { user, isLoading } = useUser();
+  const { dbUser, loading: contextLoading } = useUserContext();
   const router = useRouter();
 
   useEffect(() => {
-    if (user && !isLoading) {
-      router.push('/select-role');
+    if (user && !isLoading && !contextLoading) {
+      if (dbUser) {
+        // Existing user - redirect to their dashboard
+        if (dbUser.role === 'student') {
+          router.push('/student/dashboard');
+        } else if (dbUser.role === 'clinic') {
+          router.push('/clinic/dashboard');
+        } else if (dbUser.role === 'admin') {
+          router.push('/select-role'); // Admins can choose role
+        }
+      } else {
+        // New user - redirect to role selection
+        router.push('/select-role');
+      }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, contextLoading, dbUser, router]);
 
   return (
     <>
@@ -39,29 +53,35 @@ export default function Home() {
                 Find the perfect internship opportunities at top clinics. 
                 Apply with one click and track your applications.
               </p>
-              <a
-                href="/api/auth/login?screen_hint=signup"
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block"
+              <button
+                onClick={() => {
+                  // TODO: Add student information page/modal
+                  console.log('Student info clicked - coming soon!');
+                }}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block cursor-pointer border-none"
               >
-                Find Internships
-              </a>
+                Learn More for Students
+              </button>
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-green-500">
               <div className="text-4xl mb-4">🏥</div>
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibent text-gray-800 mb-4">
                 For Clinics
               </h2>
               <p className="text-gray-600 mb-6">
                 Streamline your internship program. Post positions, 
                 manage applications, and find the best candidates.
               </p>
-              <a
-                href="/api/auth/login?screen_hint=signup"
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-block"
+              <button
+                onClick={() => {
+                  // TODO: Add clinic information page/modal
+                  console.log('Clinic info clicked - coming soon!');
+                }}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-block cursor-pointer border-none"
               >
-                Post Positions
-              </a>
+                Learn More for Clinics
+              </button>
             </div>
           </div>
 
@@ -89,3 +109,5 @@ export default function Home() {
     </>
   );
 }
+
+

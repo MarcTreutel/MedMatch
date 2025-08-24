@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Navigation from '@/components/Navigation';
 import Link from 'next/link';
+import ForbiddenPage from '@/components/ForbiddenPage';
 import { useUserContext } from '@/context/UserContext';
 
 interface Position {
@@ -49,19 +50,19 @@ export default function ClinicDashboard() {
         router.push('/');
         return;
       }
-      
-      // If user is not a clinic or admin, redirect to role selection
-      if (dbUser && dbUser.role !== 'clinic' && dbUser.role !== 'admin') {
-        router.push('/select-role');
-        return;
-      }
-      
-      Promise.all([
-        fetchPositions(),
-        fetchApplications()
-      ]).then(() => {
+
+      // If user has correct role, fetch data
+      if (dbUser && (dbUser.role === 'clinic' || dbUser.role === 'admin')) {
+        Promise.all([
+          fetchPositions(),
+          fetchApplications()
+        ]).then(() => {
+          setLoading(false);
+        });
+      } else if (dbUser) {
+        // User is logged in but has wrong role - stop loading to show forbidden page
         setLoading(false);
-      });
+      }
     }
   }, [user, dbUser, authLoading, userLoading]);
 
@@ -104,7 +105,18 @@ export default function ClinicDashboard() {
     return applications.filter(app => app.status === status).length;
   };
 
+  // Show loading while authentication is happening
   if (authLoading || userLoading) return <div>Loading...</div>;
+
+  // Show forbidden page for users with wrong role
+  if (dbUser && dbUser.role !== 'clinic' && dbUser.role !== 'admin') {
+    return <ForbiddenPage requiredRole="Clinic" currentRole={dbUser.role} />;
+  }
+
+  // Show loading while fetching dashboard data (only for authorized users)
+  if (loading && dbUser && (dbUser.role === 'clinic' || dbUser.role === 'admin')) {
+    return <div>Loading dashboard...</div>;
+  }
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Not specified';
@@ -318,3 +330,4 @@ export default function ClinicDashboard() {
     </>
   );
 }
+

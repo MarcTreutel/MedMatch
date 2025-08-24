@@ -126,14 +126,17 @@ export default function Navigation() {
                   
                   {menuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                      <button 
-                        onClick={handleRoleSwitch}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      >
-                        {isStudentSection ? "Switch to Clinic" : 
-                         isClinicSection ? "Switch to Student" : 
-                         "Select Role"}
-                      </button>
+                      {/* Only admins can switch roles */}
+                      {isAdmin && (
+                        <button 
+                          onClick={handleRoleSwitch}
+                          className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          {isStudentSection ? "Switch to Clinic" : 
+                          isClinicSection ? "Switch to Student" : 
+                          "Select Role"}
+                        </button>
+                      )}
                       <a
                         href="/api/auth/logout"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -153,7 +156,11 @@ export default function Navigation() {
                   Login
                 </a>
                 <a
-                  href="/api/auth/login?screen_hint=signup"
+                  href="/api/auth/signup"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.location.href = '/api/auth/signup';
+                  }}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                 >
                   Sign Up
@@ -166,3 +173,4 @@ export default function Navigation() {
     </nav>
   );
 }
+

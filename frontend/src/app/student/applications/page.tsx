@@ -43,6 +43,11 @@ export default function StudentApplications() {
     try {
       const response = await fetch(`http://localhost:3001/api/applications/student/${user?.sub}`);
       const data = await response.json();
+
+      console.log('Applications API response:', data);
+      console.log('Is array?', Array.isArray(data));
+      console.log('Type:', typeof data);
+
       setApplications(data);
     } catch (error) {
       console.error('Error fetching applications:', error);
