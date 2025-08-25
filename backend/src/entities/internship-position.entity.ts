@@ -1,5 +1,6 @@
+// backend/src/entities/internship-position.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn, OneToMany } from 'typeorm';
-import { ClinicProfile } from './clinic-profile.entity';
+import { Clinic } from './clinic.entity';
 import { Application } from './application.entity';
 
 export enum PositionStatus {
@@ -16,9 +17,9 @@ export class InternshipPosition {
   @Column()
   clinic_id: string;
 
-  @ManyToOne(() => ClinicProfile, clinic => clinic.positions)
+  @ManyToOne(() => Clinic, clinic => clinic.positions)
   @JoinColumn({ name: 'clinic_id' })
-  clinic: ClinicProfile;
+  clinic: Clinic;
 
   @Column()
   title: string;
@@ -32,10 +33,10 @@ export class InternshipPosition {
   @Column()
   duration_months: number;
 
-  @Column({ nullable: true }) // Allow null for existing records
+  @Column({ nullable: true })
   start_date: Date;
 
-  @Column({ nullable: true }) // Allow null for existing records
+  @Column({ nullable: true })
   application_deadline: Date;
 
   @Column({ nullable: true, type: 'text' })
@@ -54,3 +55,4 @@ export class InternshipPosition {
   @OneToMany(() => Application, application => application.position)
   applications: Application[];
 }
+

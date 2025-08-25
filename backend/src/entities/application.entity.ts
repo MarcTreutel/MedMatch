@@ -1,5 +1,6 @@
+// backend/src/entities/application.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { StudentProfile } from './student-profile.entity';
+import { UserProfile } from './user-profile.entity';
 import { InternshipPosition } from './internship-position.entity';
 
 export enum ApplicationStatus {
@@ -17,9 +18,9 @@ export class Application {
   @Column()
   student_id: string;
 
-  @ManyToOne(() => StudentProfile, student => student.applications)
+  @ManyToOne(() => UserProfile, profile => profile.applications)
   @JoinColumn({ name: 'student_id' })
-  student: StudentProfile;
+  student: UserProfile;
 
   @Column()
   position_id: string;
@@ -47,3 +48,4 @@ export class Application {
   @Column({ type: 'text', nullable: true })
   notes: string;
 }
+

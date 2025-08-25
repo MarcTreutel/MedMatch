@@ -1,21 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, JoinColumn, OneToOne, OneToMany } from 'typeorm';
+// backend/src/entities/clinic.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './user.entity';
 import { InternshipPosition } from './internship-position.entity';
 
-@Entity({ name: 'clinic_profiles' })
-export class ClinicProfile {
+@Entity({ name: 'clinics' })
+export class Clinic {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
-  user_id: string;
-
-  @OneToOne(() => User, user => user.clinicProfile)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
-
-  @Column()
-  clinic_name: string;
+  name: string;
 
   @Column({ nullable: true })
   department: string;
@@ -29,6 +23,18 @@ export class ClinicProfile {
   @Column({ nullable: true })
   phone: string;
 
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  // One clinic can have many members (users)
+  @OneToMany(() => User, user => user.clinic)
+  members: User[];
+
+  // One clinic can have many positions
   @OneToMany(() => InternshipPosition, position => position.clinic)
   positions: InternshipPosition[];
 }
+

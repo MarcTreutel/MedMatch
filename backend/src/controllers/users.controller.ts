@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { User, UserRole } from '../entities/user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/user.decorator';
-import { Roles } from '../auth/roles.decorator'; // 🔥 ADD THIS
+import { Roles } from '../auth/roles.decorator';
 import { Request } from 'express';
 
 @Controller('api/users')
@@ -15,7 +15,7 @@ export class UsersController {
   ) {}
 
   @Post()
-  // 🔥 No @Roles decorator - this endpoint needs to be accessible during registration
+  // No @Roles decorator - this endpoint needs to be accessible during registration
   async createOrUpdateUser(@Body() userData: any) {
     try {
       const { auth0Id, email, name, role } = userData;
@@ -29,7 +29,7 @@ export class UsersController {
       if (user) {
         console.log("User exists:", user.id, "Current role:", user.role);
   
-        // 🔒 CRITICAL: Roles are immutable ONLY after they've been set
+        // CRITICAL: Roles are immutable ONLY after they've been set
         if (user.role && role && role !== user.role) {
           console.log("Role change blocked - roles are immutable:", user.role, "->", role);
           return { 
@@ -69,14 +69,16 @@ export class UsersController {
   }
 
   @Get(':auth0Id')
-  // @Roles(UserRole.STUDENT, UserRole.CLINIC, UserRole.ADMIN) // 🔥 All authenticated users can get user data (temporarily disabled) 
+  // UPDATED: Include new clinic roles
+  // @Roles(UserRole.STUDENT, UserRole.CLINIC_ADMIN, UserRole.CLINIC_MEMBER, UserRole.ADMIN) // All authenticated users can get user data (temporarily disabled) 
   async getUserByAuth0Id(@Param('auth0Id') auth0Id: string) {
     try {
       console.log("Getting user by auth0Id:", auth0Id);
       
       // Try direct match first
       let user = await this.userRepository.findOne({
-        where: { auth0_id: auth0Id }
+        where: { auth0_id: auth0Id },
+        relations: ['clinic', 'profile'] // UPDATED: Include new relationships
       });
       
       if (user) {
@@ -88,7 +90,8 @@ export class UsersController {
       if (!auth0Id.startsWith('auth0|')) {
         const formattedAuth0Id = `auth0|${auth0Id}`;
         user = await this.userRepository.findOne({
-          where: { auth0_id: formattedAuth0Id }
+          where: { auth0_id: formattedAuth0Id },
+          relations: ['clinic', 'profile'] // UPDATED: Include new relationships
         });
         
         if (user) {
@@ -101,7 +104,8 @@ export class UsersController {
       if (auth0Id.startsWith('auth0|')) {
         const strippedAuth0Id = auth0Id.replace('auth0|', '');
         user = await this.userRepository.findOne({
-          where: { auth0_id: strippedAuth0Id }
+          where: { auth0_id: strippedAuth0Id },
+          relations: ['clinic', 'profile'] // UPDATED: Include new relationships
         });
         
         if (user) {
@@ -118,9 +122,9 @@ export class UsersController {
     }
   }
 
-  // 🔒 SECURE ADMIN ENDPOINT - Only for creating first admin
+  // SECURE ADMIN ENDPOINT - Only for creating first admin
   @Post('create-first-admin')
-  // 🔥 No @Roles decorator - this is a special bootstrap endpoint
+  // No @Roles decorator - this is a special bootstrap endpoint
   async createFirstAdmin(@Body() data: { targetAuth0Id: string; superAdminSecret: string }) {
     try {
       const { targetAuth0Id, superAdminSecret } = data;
@@ -162,13 +166,14 @@ export class UsersController {
     }
   }
 
-  // 🔥 NEW: Admin-only endpoint to view all users
+  // UPDATED: Admin-only endpoint to view all users
   @Get()
-  @Roles(UserRole.ADMIN) // 🔥 Only admins can see all users
+  @Roles(UserRole.ADMIN) // Only admins can see all users
   async getAllUsers() {
     try {
       const users = await this.userRepository.find({
-        select: ['id', 'auth0_id', 'email', 'name', 'role', 'created_at', 'updated_at']
+        select: ['id', 'auth0_id', 'email', 'name', 'role', 'created_at', 'updated_at'],
+        relations: ['clinic', 'profile'] // UPDATED: Include new relationships
       });
       return users;
     } catch (error) {
@@ -177,9 +182,9 @@ export class UsersController {
     }
   }
 
-  // 🔥 NEW: Admin-only endpoint to promote users to admin
+  // UPDATED: Admin-only endpoint to promote users to admin
   @Post('promote-to-admin')
-  @Roles(UserRole.ADMIN) // 🔥 Only existing admins can create new admins
+  @Roles(UserRole.ADMIN) // Only existing admins can create new admins
   async promoteToAdmin(@Body() data: { targetAuth0Id: string }) {
     try {
       const { targetAuth0Id } = data;
@@ -209,9 +214,35 @@ export class UsersController {
     }
   }
 
-  // 🚫 REMOVED INSECURE ENDPOINTS:
-  // - set-role (allowed anyone to change roles with simple key)
-  // - promote-to-admin (allowed anyone to become admin with simple key)
-  // These are security vulnerabilities and have been removed
+  // NEW: Admin-only endpoint to assign users to clinics
+  @Post('assign-to-clinic')
+  @Roles(UserRole.ADMIN) // Only admins can assign users to clinics
+  async assignToClinic(@Body() data: { targetAuth0Id: string; clinicId: string; role: 'clinic_admin' | 'clinic_member' }) {
+    try {
+      const { targetAuth0Id, clinicId, role } = data;
+      
+      // Find target user
+      let targetUser = await this.userRepository.findOne({
+        where: { auth0_id: targetAuth0Id }
+      });
+
+      if (!targetUser) {
+        return { success: false, error: 'Target user not found' };
+      }
+
+      // Update user's clinic and role
+      targetUser.clinic_id = clinicId;
+      targetUser.role = role === 'clinic_admin' ? UserRole.CLINIC_ADMIN : UserRole.CLINIC_MEMBER;
+      
+      const updatedUser = await this.userRepository.save(targetUser);
+
+      console.log("User assigned to clinic:", updatedUser.id, "Clinic:", clinicId, "Role:", role);
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      console.error('Error assigning user to clinic:', error);
+      return { success: false, error: 'Failed to assign user to clinic' };
+    }
+  }
 }
+
 

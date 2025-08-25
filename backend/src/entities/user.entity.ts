@@ -1,10 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne } from 'typeorm';
-import { StudentProfile } from './student-profile.entity';
-import { ClinicProfile } from './clinic-profile.entity';
+// backend/src/entities/user.entity.ts
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToOne, ManyToOne, JoinColumn } from 'typeorm';
+import { UserProfile } from './user-profile.entity';
+import { Clinic } from './clinic.entity'; // Renamed from ClinicProfile
 
 export enum UserRole {
   STUDENT = 'student',
-  CLINIC = 'clinic',
+  CLINIC_ADMIN = 'clinic_admin',
+  CLINIC_MEMBER = 'clinic_member',
   ADMIN = 'admin'
 }
 
@@ -25,7 +27,7 @@ export class User {
   @Column({ 
     type: 'enum', 
     enum: UserRole,
-    nullable: true // 🔥 Make sure this is true
+    nullable: true
   })
   role: UserRole | null;
 
@@ -35,9 +37,16 @@ export class User {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToOne(() => StudentProfile, studentProfile => studentProfile.user)
-  studentProfile: StudentProfile;
+  // New one-to-one relationship with UserProfile
+  @OneToOne(() => UserProfile, profile => profile.user)
+  profile: UserProfile;
 
-  @OneToOne(() => ClinicProfile, clinicProfile => clinicProfile.user)
-  clinicProfile: ClinicProfile;
+  // New many-to-one relationship with Clinic
+  @ManyToOne(() => Clinic, clinic => clinic.members, { nullable: true })
+  @JoinColumn({ name: 'clinic_id' })
+  clinic: Clinic;
+
+  @Column({ nullable: true })
+  clinic_id: string;
 }
+

@@ -2,8 +2,8 @@ import { Controller, Get, Post, Delete, Body, Param, UploadedFile, UseIntercepto
 import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Document, DocumentType } from '../entities/document.entity'; // 🔥 Import DocumentType enum
-import { StudentProfile } from '../entities/student-profile.entity';
+import { Document, DocumentType } from '../entities/document.entity';
+import { UserProfile } from '../entities/user-profile.entity'; // UPDATED: was StudentProfile
 import { User, UserRole } from '../entities/user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/user.decorator';
@@ -20,20 +20,29 @@ export class DocumentsController {
   constructor(
     @InjectRepository(Document)
     private documentRepository: Repository<Document>,
-    @InjectRepository(StudentProfile)
-    private studentRepository: Repository<StudentProfile>,
+    @InjectRepository(UserProfile) // UPDATED: was StudentProfile
+    private userProfileRepository: Repository<UserProfile>, // UPDATED: was studentRepository
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
 
   @Get('my')
-  @Roles(UserRole.STUDENT, UserRole.CLINIC, UserRole.ADMIN)
+  @Roles(UserRole.STUDENT, UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
   async getMyDocuments(@CurrentUser() user: User) {
     console.log('Getting documents for user:', user.id);
 
     try {
+      // UPDATED: Get user profile first, then find documents by profile ID
+      const userProfile = await this.userProfileRepository.findOne({
+        where: { user_id: user.id }
+      });
+
+      if (!userProfile) {
+        return []; // No profile means no documents
+      }
+
       const documents = await this.documentRepository.find({
-        where: { student_id: user.id }, // ✅ Matches your entity
+        where: { student_id: userProfile.id }, // UPDATED: Use profile ID instead of user ID
         order: { uploaded_at: 'DESC' }
       });
 
@@ -45,33 +54,34 @@ export class DocumentsController {
   }
 
   @Get('application/:applicationId')
-  @Roles(UserRole.CLINIC, UserRole.ADMIN)
+  @Roles(UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
   async getApplicationDocuments(
     @CurrentUser() user: User,
     @Param('applicationId') applicationId: string
   ) {
     console.log('Getting application documents for user:', user.id, 'applicationId:', applicationId);
 
-    if (user.role !== UserRole.CLINIC && user.role !== UserRole.ADMIN) {
-      throw new BadRequestException('Only clinics and admins can access application documents');
+    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) { // UPDATED: was UserRole.CLINIC
+      throw new BadRequestException('Only clinic admins and admins can access application documents');
     }
 
     try {
+      // UPDATED: Use clinic_id from user's clinic relationship
       const application = await this.documentRepository.query(`
         SELECT a.*, p.clinic_id, a.student_id
         FROM applications a
         JOIN internship_positions p ON a.position_id = p.id
         WHERE a.id = $1 AND p.clinic_id = $2
-      `, [applicationId, user.id]);
+      `, [applicationId, user.clinic_id]); // UPDATED: Use user.clinic_id
 
       if (!application || application.length === 0) {
         throw new NotFoundException('Application not found or access denied');
       }
 
-      const studentId = application[0].student_id;
+      const studentProfileId = application[0].student_id; // This is now a profile ID
 
       const documents = await this.documentRepository.find({
-        where: { student_id: studentId },
+        where: { student_id: studentProfileId },
         order: { uploaded_at: 'DESC' }
       });
 
@@ -86,7 +96,7 @@ export class DocumentsController {
   }
 
   @Post('upload')
-  @Roles(UserRole.STUDENT, UserRole.CLINIC, UserRole.ADMIN)
+  @Roles(UserRole.STUDENT, UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -116,8 +126,8 @@ export class DocumentsController {
     @CurrentUser() user: User,
     @UploadedFile() file: Express.Multer.File,
     @Body() body: {
-      documentType: DocumentType; // 🔥 Use the enum type
-      title: string;
+      documentType: DocumentType;
+      title?: string; // Made optional since it's not in the entity
     }
   ) {
     console.log('Uploading document for user:', user.id);
@@ -127,20 +137,28 @@ export class DocumentsController {
     }
 
     try {
-      const { documentType, title } = body;
+      const { documentType } = body;
+
+      // UPDATED: Get user profile first
+      const userProfile = await this.userProfileRepository.findOne({
+        where: { user_id: user.id }
+      });
+
+      if (!userProfile) {
+        throw new BadRequestException('User profile not found');
+      }
 
       // Ensure uploads directory exists
       if (!fs.existsSync('./uploads')) {
         fs.mkdirSync('./uploads', { recursive: true });
       }
 
-      // 🔥 FIX: Create document with exact entity field names
+      // UPDATED: Create document with correct field names matching the new entity
       const document = this.documentRepository.create({
-        student_id: user.id,        // ✅ Matches your entity
-        title: title,               // ✅ Matches your entity
-        type: documentType,         // ✅ Matches your entity (DocumentType enum)
-        file_path: file.path,       // ✅ Matches your entity
-        file_name: file.originalname, // ✅ Matches your entity
+        student_id: userProfile.id,     // UPDATED: Use profile ID
+        filename: file.originalname,    // UPDATED: was file_name
+        path: file.path,               // UPDATED: was file_path
+        type: documentType,
         // uploaded_at is auto-generated by @CreateDateColumn
       });
 
@@ -164,7 +182,7 @@ export class DocumentsController {
   }
 
   @Get('download/:documentId')
-  @Roles(UserRole.STUDENT, UserRole.CLINIC, UserRole.ADMIN)
+  @Roles(UserRole.STUDENT, UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
   async downloadDocument(
     @CurrentUser() user: User,
     @Param('documentId') documentId: string,
@@ -184,16 +202,22 @@ export class DocumentsController {
       // Check access permissions
       let hasAccess = false;
 
-      if (document.student_id === user.id) {
+      // UPDATED: Check if document belongs to user's profile
+      const userProfile = await this.userProfileRepository.findOne({
+        where: { user_id: user.id }
+      });
+
+      if (userProfile && document.student_id === userProfile.id) {
         hasAccess = true;
       }
-      else if (user.role === UserRole.CLINIC || user.role === UserRole.ADMIN) {
+      else if (user.role === UserRole.CLINIC_ADMIN || user.role === UserRole.ADMIN) { // UPDATED: was UserRole.CLINIC
+        // UPDATED: Check if clinic admin has access through applications
         const applicationExists = await this.documentRepository.query(`
           SELECT 1
           FROM applications a
           JOIN internship_positions p ON a.position_id = p.id
           WHERE a.student_id = $1 AND p.clinic_id = $2
-        `, [document.student_id, user.id]);
+        `, [document.student_id, user.clinic_id]); // UPDATED: Use user.clinic_id
 
         if (applicationExists && applicationExists.length > 0) {
           hasAccess = true;
@@ -204,16 +228,15 @@ export class DocumentsController {
         throw new BadRequestException('Access denied to this document');
       }
 
-      if (!fs.existsSync(document.file_path)) {
+      if (!fs.existsSync(document.path)) { // UPDATED: was document.file_path
         throw new NotFoundException('File not found on server');
       }
 
-      // 🔥 FIX: Since mime_type doesn't exist in your entity, use file extension
-      const mimeType = this.getMimeTypeFromExtension(document.file_name);
+      const mimeType = this.getMimeTypeFromExtension(document.filename); // UPDATED: was document.file_name
       res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Disposition', `attachment; filename="${document.file_name}"`);
+      res.setHeader('Content-Disposition', `attachment; filename="${document.filename}"`); // UPDATED: was document.file_name
 
-      const fileStream = fs.createReadStream(document.file_path);
+      const fileStream = fs.createReadStream(document.path); // UPDATED: was document.file_path
       fileStream.pipe(res);
     } catch (error) {
       console.error('Error downloading document:', error);
@@ -225,7 +248,7 @@ export class DocumentsController {
   }
 
   @Delete(':documentId')
-  @Roles(UserRole.STUDENT, UserRole.CLINIC, UserRole.ADMIN)
+  @Roles(UserRole.STUDENT, UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
   async deleteDocument(
     @CurrentUser() user: User,
     @Param('documentId') documentId: string
@@ -233,10 +256,19 @@ export class DocumentsController {
     console.log('Deleting document for user:', user.id, 'documentId:', documentId);
 
     try {
+      // UPDATED: Get user profile first
+      const userProfile = await this.userProfileRepository.findOne({
+        where: { user_id: user.id }
+      });
+
+      if (!userProfile) {
+        throw new BadRequestException('User profile not found');
+      }
+
       const document = await this.documentRepository.findOne({
         where: { 
           id: documentId,
-          student_id: user.id // ✅ Matches your entity
+          student_id: userProfile.id // UPDATED: Use profile ID
         }
       });
 
@@ -244,8 +276,8 @@ export class DocumentsController {
         throw new NotFoundException('Document not found or access denied');
       }
 
-      if (fs.existsSync(document.file_path)) {
-        fs.unlinkSync(document.file_path);
+      if (fs.existsSync(document.path)) { // UPDATED: was document.file_path
+        fs.unlinkSync(document.path); // UPDATED: was document.file_path
       }
 
       await this.documentRepository.remove(document);
@@ -263,7 +295,6 @@ export class DocumentsController {
     }
   }
 
-  // 🔥 Helper method to determine MIME type from file extension
   private getMimeTypeFromExtension(filename: string): string {
     const ext = extname(filename).toLowerCase();
     const mimeTypes: { [key: string]: string } = {
@@ -277,5 +308,3 @@ export class DocumentsController {
     return mimeTypes[ext] || 'application/octet-stream';
   }
 }
-
-

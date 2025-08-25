@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
+
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
@@ -12,11 +13,11 @@ import { ClinicsController } from './controllers/clinics.controller';
 import { PositionsController } from './controllers/positions.controller';
 import { DocumentsController } from './controllers/documents.controller';
 
-// Import your actual entities
+// Import your updated entities
 import { User } from './entities/user.entity';
+import { UserProfile } from './entities/user-profile.entity'; // NEW
 import { Application } from './entities/application.entity';
-import { StudentProfile } from './entities/student-profile.entity';
-import { ClinicProfile } from './entities/clinic-profile.entity';
+import { Clinic } from './entities/clinic.entity'; // RENAMED from ClinicProfile
 import { InternshipPosition } from './entities/internship-position.entity';
 import { Document } from './entities/document.entity';
 
@@ -33,20 +34,31 @@ import { RolesGuard } from './auth/roles.guard';
       username: process.env.DB_USERNAME || 'postgres',
       password: String(process.env.DB_PASSWORD || ''),
       database: process.env.DB_DATABASE || 'medmatch',
-      entities: [User, Application, StudentProfile, ClinicProfile, InternshipPosition, Document],
-      synchronize: true,
-      logging: false,
+      // Updated entities array
+      entities: [
+        User, 
+        UserProfile,        // NEW: Replaces StudentProfile
+        Application, 
+        Clinic,            // RENAMED: Was ClinicProfile
+        InternshipPosition, 
+        Document
+      ],
+      synchronize: false, // 🔥 IMPORTANT: Set to false when using migrations
+      logging: true,      // 🔥 Enable logging to see migration queries
+      migrations: ['dist/migrations/*.js'], // 🔥 Add migrations path
+      migrationsRun: false, // 🔥 Don't auto-run migrations
     }),
     
     TypeOrmModule.forFeature([
       User, 
+      UserProfile,        // NEW: Replaces StudentProfile
       Application, 
-      StudentProfile, 
-      ClinicProfile, 
+      Clinic,            // RENAMED: Was ClinicProfile
       InternshipPosition, 
       Document
     ]),
   ],
+
   controllers: [
     AppController,
     StudentsController,
@@ -56,6 +68,7 @@ import { RolesGuard } from './auth/roles.guard';
     PositionsController,
     DocumentsController,
   ],
+
   providers: [
     AppService,
     //{
@@ -69,11 +82,3 @@ import { RolesGuard } from './auth/roles.guard';
   ],
 })
 export class AppModule {}
-
-
-
-
-
-
-
-

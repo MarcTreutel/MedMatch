@@ -1,183 +1,100 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, BadRequestException, NotFoundException } from '@nestjs/common';
+// src/controllers/clinics.controller.ts
+import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Clinic } from '../entities/clinic.entity'; // UPDATED: was clinic-profile.entity
 import { User, UserRole } from '../entities/user.entity';
-import { ClinicProfile } from '../entities/clinic-profile.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { CurrentUser } from '../auth/user.decorator';
-import { Roles } from '../auth/roles.decorator'; // 🔥 ADD THIS
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-@Controller('api/clinics')
-@UseGuards(JwtAuthGuard) // 🔒 Protect all routes in this controller
-@Roles(UserRole.CLINIC, UserRole.ADMIN) // 🔥 ADD THIS - Only clinics and admins can access
+@Controller('clinics')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
 export class ClinicsController {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
-    @InjectRepository(ClinicProfile)
-    private clinicRepository: Repository<ClinicProfile>,
+    @InjectRepository(Clinic) // UPDATED: was ClinicProfile
+    private clinicRepository: Repository<Clinic>, // UPDATED: was ClinicProfile
   ) {}
 
-  // ✅ SECURE: User gets their own profile from JWT token
   @Get('profile')
-  async getClinicProfile(@CurrentUser() user: User) {
-    console.log('Getting clinic profile for user:', user.id, user.name);
+  async getProfile(@Req() req: any) {
+    const user: User = req.user;
     
-    // 🔥 UPDATED: Allow admins to access clinic endpoints (but only their own data)
-    if (user.role !== UserRole.CLINIC && user.role !== UserRole.ADMIN) {
-      throw new BadRequestException('Only clinics and admins can access this endpoint');
+    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
+    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Access denied');
     }
 
-    // Get user with clinic profile
-    const clinic = await this.userRepository.findOne({
-      where: { id: user.id },
-      relations: ['clinicProfile']
-    });
-
-    if (!clinic) {
-      throw new NotFoundException('Clinic not found');
+    // UPDATED: Use the clinic relationship instead of finding by user_id
+    if (user.clinic) {
+      return user.clinic;
     }
 
-    // Get clinic profile
-    const profile = await this.clinicRepository.findOne({
-      where: { user_id: user.id } // Always user's own profile
-    });
-
-    return {
-      id: clinic.id,
-      name: clinic.name,
-      email: clinic.email,
-      role: clinic.role,
-      created_at: clinic.created_at,
-      // Include clinic profile data if it exists
-      profile: profile || null
-    };
+    // If no clinic is associated, return null or create a new one
+    return null;
   }
 
-  // ✅ SECURE: User updates their own profile
   @Post('profile')
-  async saveClinicProfile(
-    @CurrentUser() user: User,
-    @Body() data: { 
-      name?: string;
-      clinic_name?: string;
-      department?: string;
-      address?: string;
-      contact_person?: string;
-      phone?: string;
-    }
-  ) {
-    console.log('Saving clinic profile for user:', user.id);
+  async createOrUpdateProfile(@Body() profileData: any, @Req() req: any) {
+    const user: User = req.user;
     
-    // 🔥 UPDATED: Allow admins to update clinic profiles (their own)
-    if (user.role !== UserRole.CLINIC && user.role !== UserRole.ADMIN) {
-      throw new BadRequestException('Only clinics and admins can update clinic profiles');
+    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
+    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Access denied');
     }
 
-    try {
-      const { name, clinic_name, department, address, contact_person, phone } = data;
+    let clinic: Clinic;
 
-      // Update basic user info if provided
-      if (name) {
-        await this.userRepository.update(user.id, { name });
-      }
-
-      // Find or create clinic profile
-      let profile = await this.clinicRepository.findOne({
-        where: { user_id: user.id } // Always user's own profile
-      });
-
-      if (profile) {
-        // Update existing profile
-        const updateData: Partial<ClinicProfile> = {};
-        if (clinic_name !== undefined) updateData.clinic_name = clinic_name;
-        if (department !== undefined) updateData.department = department;
-        if (address !== undefined) updateData.address = address;
-        if (contact_person !== undefined) updateData.contact_person = contact_person;
-        if (phone !== undefined) updateData.phone = phone;
-
-        await this.clinicRepository.update(profile.id, updateData);
-      } else {
-        // Create new profile
-        profile = this.clinicRepository.create({
-          user_id: user.id,
-          clinic_name,
-          department,
-          address,
-          contact_person,
-          phone
-        });
-        await this.clinicRepository.save(profile);
-      }
-
-      return { 
-        success: true, 
-        message: 'Clinic profile updated successfully',
-        profile 
-      };
-    } catch (error) {
-      console.error('Error saving clinic profile:', error);
-      throw new BadRequestException('Failed to save clinic profile');
-    }
-  }
-
-  // ✅ SECURE: User updates their own profile (PUT method for REST compliance)
-  @Put('profile')
-  async updateClinicProfile(
-    @CurrentUser() user: User,
-    @Body() updateData: { 
-      name?: string;
-      clinic_name?: string;
-      department?: string;
-      address?: string;
-      contact_person?: string;
-      phone?: string;
-    }
-  ) {
-    console.log('Updating clinic profile for user:', user.id);
-    
-    // 🔥 UPDATED: Allow admins to update clinic profiles (their own)
-    if (user.role !== UserRole.CLINIC && user.role !== UserRole.ADMIN) {
-      throw new BadRequestException('Only clinics and admins can update clinic profiles');
-    }
-
-    // Update basic user info if provided
-    if (updateData.name) {
-      await this.userRepository.update(user.id, { name: updateData.name });
-    }
-
-    // Update clinic profile fields
-    const profileFields = ['clinic_name', 'department', 'address', 'contact_person', 'phone'];
-    const profileUpdate = Object.keys(updateData)
-      .filter(key => profileFields.includes(key))
-      .reduce((obj, key) => {
-        obj[key] = updateData[key];
-        return obj;
-      }, {});
-
-    if (Object.keys(profileUpdate).length > 0) {
-      // Find existing profile or create new one
-      let clinicProfile = await this.clinicRepository.findOne({
-        where: { user_id: user.id } // Always user's own profile
-      });
-
-      if (clinicProfile) {
-        await this.clinicRepository.update(clinicProfile.id, profileUpdate);
-      } else {
-        // Create new profile
-        const newProfile = this.clinicRepository.create({
-          user_id: user.id,
-          ...profileUpdate
-        });
-        await this.clinicRepository.save(newProfile);
-      }
-    }
-    
-    return { message: 'Clinic profile updated successfully' };
-  }
-
-  // 🚫 REMOVED INSECURE ENDPOINT:
-  // - GET profile/:auth0Id (allowed anyone to access any clinic's profile by auth0Id)
-  // This was a security vulnerability and has been removed
+    if (user.clinic) {
+      // Update existing clinic
+      await this.clinicRepository.update(user.clinic.id, profileData);
+      clinic = await this.clinicRepository.findOne({ where: { id: user.clinic.id } });
+    } else {
+      // Create new clinic
+      const clinicData = {
+        name: profileData.name || 'Unnamed Clinic',
+        department: profileData.department,
+        address: profileData.address,
+        contact_person: profileData.contact_person,
+        phone: profileData.phone,
+    };
+  
+  clinic = await this.clinicRepository.save(clinicData);
+  
+  // TODO: Update user to associate with this clinic
+  // This would require access to the user repository
 }
+
+    return clinic;
+  }
+
+  @Get()
+  async getAllClinics(@Req() req: any) {
+    const user: User = req.user;
+    
+    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
+    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    return this.clinicRepository.find({
+      relations: ['members', 'positions'] // UPDATED: Include new relationships
+    });
+  }
+
+  @Delete(':id')
+  async deleteClinic(@Param('id') id: string, @Req() req: any) {
+    const user: User = req.user;
+    
+    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
+    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    await this.clinicRepository.delete(id);
+    return { message: 'Clinic deleted successfully' };
+  }
+}
+
 

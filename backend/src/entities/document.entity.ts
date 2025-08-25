@@ -1,5 +1,6 @@
+// backend/src/entities/document.entity.ts
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
-import { StudentProfile } from './student-profile.entity';
+import { UserProfile } from './user-profile.entity';
 
 export enum DocumentType {
   CV = 'cv',
@@ -15,25 +16,21 @@ export class Document {
   @Column()
   student_id: string;
 
-  @ManyToOne(() => StudentProfile, student => student.documents)
+  @ManyToOne(() => UserProfile, profile => profile.documents)
   @JoinColumn({ name: 'student_id' })
-  student: StudentProfile;
+  student: UserProfile;
 
   @Column()
-  title: string;
+  filename: string;
+
+  @Column()
+  path: string;
 
   @Column({
     type: 'enum',
-    enum: DocumentType,
-    default: DocumentType.OTHER
+    enum: DocumentType
   })
   type: DocumentType;
-
-  @Column()
-  file_path: string;
-
-  @Column()
-  file_name: string;
 
   @CreateDateColumn()
   uploaded_at: Date;
