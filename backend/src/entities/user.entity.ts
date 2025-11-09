@@ -47,6 +47,6 @@ export class User {
   clinic: Clinic;
 
   @Column({ nullable: true })
-  clinic_id: string;
+  clinic_id: string | null;
 }
 

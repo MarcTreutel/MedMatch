@@ -13,9 +13,10 @@ export default function Navigation() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Check if we're in student or clinic section
+  // Check if we're in student, clinic, or admin section
   const isStudentSection = pathname?.includes('/student');
   const isClinicSection = pathname?.includes('/clinic');
+  const isAdminSection = pathname?.includes('/admin');
 
   const handleRoleSwitch = () => {
     if (isAdmin) {
@@ -24,6 +25,8 @@ export default function Navigation() {
         router.push('/clinic/dashboard');
       } else if (isClinicSection) {
         router.push('/student/dashboard');
+      } else if (isAdminSection) {
+        router.push('/select-role');
       } else {
         router.push('/select-role');
       }
@@ -31,6 +34,11 @@ export default function Navigation() {
       // Regular users go to role selection
       router.push('/select-role');
     }
+    setMenuOpen(false);
+  };
+
+  const handleAdminPanel = () => {
+    router.push('/admin/dashboard');
     setMenuOpen(false);
   };
 
@@ -92,6 +100,26 @@ export default function Navigation() {
                     </Link>
                   </>
                 )}
+
+                {isAdminSection && (
+                  <>
+                    <Link href="/admin/dashboard" 
+                      className={`text-gray-600 hover:text-purple-700 ${pathname === '/admin/dashboard' ? 'text-purple-700 font-medium' : ''}`}
+                    >
+                      Admin Dashboard
+                    </Link>
+                    <Link href="/admin/users" 
+                      className={`text-gray-600 hover:text-purple-700 ${pathname === '/admin/users' ? 'text-purple-700 font-medium' : ''}`}
+                    >
+                      User Management
+                    </Link>
+                    <Link href="/admin/clinics" 
+                      className={`text-gray-600 hover:text-purple-700 ${pathname === '/admin/clinics' ? 'text-purple-700 font-medium' : ''}`}
+                    >
+                      Clinic Management
+                    </Link>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -126,17 +154,29 @@ export default function Navigation() {
                   
                   {menuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10">
-                      {/* Only admins can switch roles */}
+                      {/* Admin Panel Access */}
+                      {isAdmin && !isAdminSection && (
+                        <button 
+                          onClick={handleAdminPanel}
+                          className="block w-full text-left px-4 py-2 text-sm text-purple-700 hover:bg-purple-50 font-medium"
+                        >
+                          🛡️ Admin Panel
+                        </button>
+                      )}
+                      
+                      {/* Role Switching for Admins */}
                       {isAdmin && (
                         <button 
                           onClick={handleRoleSwitch}
                           className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          {isStudentSection ? "Switch to Clinic" : 
+                          {isStudentSection ? "Switch to Clinic" :
                           isClinicSection ? "Switch to Student" : 
+                          isAdminSection ? "Exit Admin Panel" :
                           "Select Role"}
                         </button>
                       )}
+                      
                       <a
                         href="/api/auth/logout"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -173,4 +213,3 @@ export default function Navigation() {
     </nav>
   );
 }
-

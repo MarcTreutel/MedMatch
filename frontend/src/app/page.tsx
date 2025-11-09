@@ -8,7 +8,7 @@ import { useUserContext } from '@/context/UserContext';
 
 export default function Home() {
   const { user, isLoading } = useUser();
-  const { dbUser, loading: contextLoading } = useUserContext();
+  const { dbUser, loading: contextLoading, isAdmin } = useUserContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -17,10 +17,10 @@ export default function Home() {
         // Existing user - redirect to their dashboard
         if (dbUser.role === 'student') {
           router.push('/student/dashboard');
-        } else if (dbUser.role === 'clinic') {
+        } else if (dbUser.role === 'clinic_admin' || dbUser.role === 'clinic_member') {
           router.push('/clinic/dashboard');
         } else if (dbUser.role === 'admin') {
-          router.push('/select-role'); // Admins can choose role
+          router.push('/admin/dashboard'); // Admins go to admin dashboard by default
         }
       } else {
         // New user - redirect to role selection
@@ -55,18 +55,21 @@ export default function Home() {
               </p>
               <button
                 onClick={() => {
-                  // TODO: Add student information page/modal
-                  console.log('Student info clicked - coming soon!');
+                  if (user) {
+                    router.push('/student/dashboard');
+                  } else {
+                    router.push('/api/auth/login?returnTo=/student/dashboard');
+                  }
                 }}
                 className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors inline-block cursor-pointer border-none"
               >
-                Learn More for Students
+                {user ? 'Go to Student Dashboard' : 'Get Started as Student'}
               </button>
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-8 border-l-4 border-green-500">
               <div className="text-4xl mb-4">🏥</div>
-              <h2 className="text-2xl font-semibent text-gray-800 mb-4">
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                 For Clinics
               </h2>
               <p className="text-gray-600 mb-6">
@@ -75,15 +78,45 @@ export default function Home() {
               </p>
               <button
                 onClick={() => {
-                  // TODO: Add clinic information page/modal
-                  console.log('Clinic info clicked - coming soon!');
+                  if (user) {
+                    router.push('/clinic/dashboard');
+                  } else {
+                    router.push('/api/auth/login?returnTo=/clinic/dashboard');
+                  }
                 }}
                 className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors inline-block cursor-pointer border-none"
               >
-                Learn More for Clinics
+                {user ? 'Go to Clinic Dashboard' : 'Get Started as Clinic'}
               </button>
             </div>
           </div>
+
+          {/* Admin Section - Only visible to admins */}
+          {isAdmin && (
+            <div className="max-w-4xl mx-auto mb-16">
+              <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg p-8 text-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-4xl mb-4">👑</div>
+                    <h2 className="text-2xl font-semibold mb-4">
+                      System Administration
+                    </h2>
+                    <p className="text-purple-100 mb-6">
+                      Manage users, clinics, and system settings. Monitor platform activity and maintain system health.
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <button
+                      onClick={() => router.push('/admin/dashboard')}
+                      className="bg-white text-purple-600 px-6 py-3 rounded-lg hover:bg-purple-50 transition-colors font-semibold"
+                    >
+                      Admin Dashboard
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="text-center bg-white rounded-lg shadow-lg p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-semibold text-gray-800 mb-6">
@@ -109,5 +142,3 @@ export default function Home() {
     </>
   );
 }
-
-

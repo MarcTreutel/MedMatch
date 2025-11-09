@@ -1,100 +1,164 @@
-// src/controllers/clinics.controller.ts
+// backend/src/controllers/clinics.controller.ts
 import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Clinic } from '../entities/clinic.entity'; // UPDATED: was clinic-profile.entity
+import { Clinic } from '../entities/clinic.entity';
 import { User, UserRole } from '../entities/user.entity';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import { CurrentUser } from '../auth/user.decorator';
 
-@Controller('clinics')
+@Controller('api/clinics')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.CLINIC_ADMIN, UserRole.ADMIN) // UPDATED: was UserRole.CLINIC
+@Roles(UserRole.CLINIC_ADMIN, UserRole.CLINIC_MEMBER) // Only clinic users can access
 export class ClinicsController {
   constructor(
-    @InjectRepository(Clinic) // UPDATED: was ClinicProfile
-    private clinicRepository: Repository<Clinic>, // UPDATED: was ClinicProfile
+    @InjectRepository(Clinic)
+    private clinicRepository: Repository<Clinic>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
   ) {}
 
   @Get('profile')
-  async getProfile(@Req() req: any) {
-    const user: User = req.user;
-    
-    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
-    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Access denied');
-    }
+  async getMyClinicProfile(@CurrentUser() user: User) {
+    console.log('Getting clinic profile for user:', user.id);
 
-    // UPDATED: Use the clinic relationship instead of finding by user_id
-    if (user.clinic) {
-      return user.clinic;
-    }
+    try {
+      if (!user.clinic_id) {
+        return { error: 'User is not associated with any clinic' };
+      }
 
-    // If no clinic is associated, return null or create a new one
-    return null;
+      const clinic = await this.clinicRepository.findOne({
+        where: { id: user.clinic_id },
+        relations: ['members', 'positions']
+      });
+
+      if (!clinic) {
+        return { error: 'Clinic not found' };
+      }
+
+      return clinic;
+    } catch (error) {
+      console.error('Error fetching clinic profile:', error);
+      return { error: 'Failed to fetch clinic profile' };
+    }
   }
 
-  @Post('profile')
-  async createOrUpdateProfile(@Body() profileData: any, @Req() req: any) {
-    const user: User = req.user;
-    
-    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
-    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Access denied');
+  @Put('profile')
+  @Roles(UserRole.CLINIC_ADMIN) // Only clinic admins can update
+  async updateMyClinicProfile(
+    @CurrentUser() user: User,
+    @Body() profileData: {
+      name?: string;
+      department?: string;
+      address?: string;
+      contact_person?: string;
+      phone?: string;
     }
+  ) {
+    console.log('Updating clinic profile for user:', user.id);
 
-    let clinic: Clinic;
+    try {
+      if (!user.clinic_id) {
+        throw new ForbiddenException('User is not associated with any clinic');
+      }
 
-    if (user.clinic) {
-      // Update existing clinic
-      await this.clinicRepository.update(user.clinic.id, profileData);
-      clinic = await this.clinicRepository.findOne({ where: { id: user.clinic.id } });
-    } else {
-      // Create new clinic
-      const clinicData = {
-        name: profileData.name || 'Unnamed Clinic',
-        department: profileData.department,
-        address: profileData.address,
-        contact_person: profileData.contact_person,
-        phone: profileData.phone,
-    };
-  
-  clinic = await this.clinicRepository.save(clinicData);
-  
-  // TODO: Update user to associate with this clinic
-  // This would require access to the user repository
+      const clinic = await this.clinicRepository.findOne({
+        where: { id: user.clinic_id }
+      });
+
+      if (!clinic) {
+        throw new ForbiddenException('Clinic not found');
+      }
+
+      // Update clinic
+      Object.assign(clinic, profileData);
+      const updatedClinic = await this.clinicRepository.save(clinic);
+
+      // Return with relations
+      const clinicWithRelations = await this.clinicRepository.findOne({
+        where: { id: user.clinic_id },
+        relations: ['members', 'positions']
+      });
+
+      return clinicWithRelations;
+    } catch (error) {
+      console.error('Error updating clinic profile:', error);
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      return { error: 'Failed to update clinic profile' };
+    }
+  }
+
+  @Get('members')
+  async getMyClinicMembers(@CurrentUser() user: User) {
+    console.log('Getting clinic members for user:', user.id);
+
+    try {
+      if (!user.clinic_id) {
+        return { error: 'User is not associated with any clinic' };
+      }
+
+      const clinic = await this.clinicRepository.findOne({
+        where: { id: user.clinic_id },
+        relations: ['members', 'members.profile']
+      });
+
+      if (!clinic) {
+        return { error: 'Clinic not found' };
+      }
+
+      return {
+        clinic: {
+          id: clinic.id,
+          name: clinic.name
+        },
+        members: clinic.members || []
+      };
+    } catch (error) {
+      console.error('Error fetching clinic members:', error);
+      return { error: 'Failed to fetch clinic members' };
+    }
+  }
+
+  @Put('members/:userId/promote')
+  @Roles(UserRole.CLINIC_ADMIN) // Only clinic admins can promote
+  async promoteMemberToAdmin(
+    @CurrentUser() user: User,
+    @Param('userId') userId: string
+  ) {
+    console.log('Promoting clinic member to admin:', { clinicId: user.clinic_id, userId });
+
+    try {
+      if (!user.clinic_id) {
+        throw new ForbiddenException('User is not associated with any clinic');
+      }
+
+      const targetUser = await this.userRepository.findOne({ where: { id: userId } });
+      if (!targetUser) {
+        return { success: false, error: 'User not found' };
+      }
+
+      if (targetUser.clinic_id !== user.clinic_id) {
+        throw new ForbiddenException('User does not belong to your clinic');
+      }
+
+      if (targetUser.role === UserRole.CLINIC_ADMIN) {
+        return { success: false, error: 'User is already a clinic admin' };
+      }
+
+      targetUser.role = UserRole.CLINIC_ADMIN;
+      const updatedUser = await this.userRepository.save(targetUser);
+
+      return { success: true, user: updatedUser };
+    } catch (error) {
+      console.error('Error promoting member to admin:', error);
+      if (error instanceof ForbiddenException) {
+        throw error;
+      }
+      return { success: false, error: 'Failed to promote user to clinic admin' };
+    }
+  }
 }
-
-    return clinic;
-  }
-
-  @Get()
-  async getAllClinics(@Req() req: any) {
-    const user: User = req.user;
-    
-    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
-    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    return this.clinicRepository.find({
-      relations: ['members', 'positions'] // UPDATED: Include new relationships
-    });
-  }
-
-  @Delete(':id')
-  async deleteClinic(@Param('id') id: string, @Req() req: any) {
-    const user: User = req.user;
-    
-    // UPDATED: Check for CLINIC_ADMIN instead of CLINIC
-    if (user.role !== UserRole.CLINIC_ADMIN && user.role !== UserRole.ADMIN) {
-      throw new ForbiddenException('Access denied');
-    }
-
-    await this.clinicRepository.delete(id);
-    return { message: 'Clinic deleted successfully' };
-  }
-}
-
-
